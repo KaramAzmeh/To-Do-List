@@ -1,0 +1,45 @@
+[
+  {
+    "featureType": "road.highway",
+    "stylers": [
+      {
+        "color": "#5188a4"
+      },
+      {
+        "lightness": 30
+      },
+      {
+        "visibility": "simplified"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#607680"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "stylers": [
+      {
+        "color": "#d3dbdf"
+      }
+    ]
+  }
+]
