@@ -29,7 +29,6 @@ import org.koin.core.logger.Level
 import org.koin.dsl.module
 
 import org.koin.test.KoinTest
-import org.koin.test.KoinTestRule
 import org.koin.test.inject
 
 @RunWith(AndroidJUnit4::class)
@@ -78,13 +77,13 @@ class RemindersListViewModelTest : KoinTest {
     // Executes each task synchronously using Architecture Components.
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
-
+/*
     @get:Rule
     val koinTestRule = KoinTestRule.create {
         printLogger(Level.DEBUG)
         modules(myModule)
-    }
-/*
+    }*/
+
     @Before fun startKoinForTest() {
         stopKoin()// stop the original app koin, which is launched when the application starts (in "MyApp")
         appContext = ApplicationProvider.getApplicationContext()
@@ -95,7 +94,7 @@ class RemindersListViewModelTest : KoinTest {
             modules(listOf(myModule))
         }
 
-   */
+
 /*     // We initialise the tasks to 3, with one active and two completed
         val reminder1 = ReminderDTO("Title1", "Description1", "location1", 10.0110, 20.5000)
         val reminder2 = ReminderDTO("Title2", "Description2", "location2", 40.0110, 30.5000)
@@ -103,13 +102,13 @@ class RemindersListViewModelTest : KoinTest {
 
         mainCoroutineRule.runBlockingTest {
             dataSource.addReminders(reminder1, reminder2, reminder3)
-        }*//*
+        }*/
 
 
     }
     @After
     fun stopKoinAfterTest() = stopKoin()
-*/
+
 
 
     @Test
