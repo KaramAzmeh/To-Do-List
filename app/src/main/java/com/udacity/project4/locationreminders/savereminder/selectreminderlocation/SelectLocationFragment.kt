@@ -31,6 +31,7 @@ import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import java.util.*
 
+
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private val TAG = "SelectLocationFragment"
