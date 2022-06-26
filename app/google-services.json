@@ -7,6 +7,46 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:415794211772:android:9575a5a5327bc0f2eb99b9",
+        "android_client_info": {
+          "package_name": "com.udacity.project4"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "415794211772-f9uvkkkplgjs2iafp1ndqscau1qn9u6d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.udacity.project4",
+            "certificate_hash": "d0fc2be4a95b2ca8e4a7e8107472e5ffd23daf73"
+          }
+        },
+        {
+          "client_id": "415794211772-r3896i5bbjjbie40afa48hmdes3i1hrr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAukmzf7yTBLUzWjGD9_s-oxzCOalS7E1o"
+        },
+        {
+          "current_key": "AIzaSyBUZJkNw94U615WkubGCqhrXHAyuCk4SbQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "415794211772-r3896i5bbjjbie40afa48hmdes3i1hrr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:415794211772:android:d64eb1eef89bad29eb99b9",
         "android_client_info": {
           "package_name": "com.udacity.todolist"
@@ -27,6 +67,9 @@
         }
       ],
       "api_key": [
+        {
+          "current_key": "AIzaSyAukmzf7yTBLUzWjGD9_s-oxzCOalS7E1o"
+        },
         {
           "current_key": "AIzaSyBUZJkNw94U615WkubGCqhrXHAyuCk4SbQ"
         }

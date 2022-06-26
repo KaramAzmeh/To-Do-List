@@ -1,11 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: androidx.test:rules:1.2.0-beta01@aar">
     <CLASSES>
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/c6480807170a660affafd48ecd35e02d/rules-1.2.0-beta01/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/aa70db0b70509d47cf460c95a0237039/rules-1.2.0-beta01/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/24d6688b2fe6b694a3e5d83e39ac6543/rules-1.2.0-beta01/AndroidManifest.xml" />
       <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/24d6688b2fe6b694a3e5d83e39ac6543/rules-1.2.0-beta01/jars/classes.jar!/" />
       <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/24d6688b2fe6b694a3e5d83e39ac6543/rules-1.2.0-beta01/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/24d6688b2fe6b694a3e5d83e39ac6543/rules-1.2.0-beta01/AndroidManifest.xml" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.test/rules/1.2.0-beta01/c431850aeff78b61588e9bdba4182cd110a3a453/rules-1.2.0-beta01-javadoc.jar!/" />
