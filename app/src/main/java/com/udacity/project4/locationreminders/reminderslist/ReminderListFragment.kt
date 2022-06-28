@@ -11,6 +11,7 @@ import android.view.*
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
+import androidx.lifecycle.map
 import com.firebase.ui.auth.AuthUI
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
@@ -20,6 +21,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.authentication.AuthenticationState
+import com.udacity.project4.authentication.FirebaseUserLiveData
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
@@ -34,6 +36,15 @@ class ReminderListFragment : BaseFragment() {
     private val TAG = "ReminderListFragment"
 
     private val runningQOrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+
+    private val authenticationState = FirebaseUserLiveData().map { user ->
+        if (user != null) {
+            AuthenticationState.AUTHENTICATED
+        } else {
+            AuthenticationState.UNAUTHENTICATED
+
+        }
+    }
 
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
@@ -122,7 +133,7 @@ class ReminderListFragment : BaseFragment() {
      */
     private fun observeAuthenticationState() {
 
-        _viewModel.authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
+        authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
             when(authenticationState) {
                 AuthenticationState.AUTHENTICATED -> {
 
