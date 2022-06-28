@@ -5,14 +5,13 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.*
-import com.udacity.project4.locationreminders.data.FakeDataSource
+import com.udacity.project4.locationreminders.data.local.FakeLocalRepository
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.nullValue
-import org.hamcrest.MatcherAssert
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is.`is`
 import org.junit.After
@@ -26,7 +25,6 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
-import com.udacity.project4.locationreminders.data.dto.Result
 
 import org.koin.test.KoinTest
 import org.koin.test.inject
@@ -37,38 +35,21 @@ class RemindersListViewModelTest : KoinTest {
 
 
     private val remindersListViewModel by inject<RemindersListViewModel>()
-    private val dataSource by inject<FakeDataSource>()
+    private val dataSource by inject<FakeLocalRepository>()
     private lateinit var appContext : Application
-
-/*    val viewModelsModule =
-        module {
-            viewModel { RemindersListViewModel(
-                appContext,
-                dataSource
-            ) }
-        }
-    val dataSourcesModule =
-        module {
-            single{ FakeDataSource() }
-        }*/
 
     val myModule = module {
         // define your module for test here
         viewModel {
             RemindersListViewModel(
                 appContext,
-                get() as FakeDataSource
+                get() as FakeLocalRepository
             )
         }
 
-        single{ FakeDataSource() }
+        single{ FakeLocalRepository() }
 
     }
-
-    // Subject under test
-//    private val remindersListViewModel: RemindersListViewModel by viewModel()
-
-    // Use a fake data source to be injected into the viewmodel
 
     // Set the main coroutines dispatcher for unit testing.
     @get:Rule
@@ -77,12 +58,6 @@ class RemindersListViewModelTest : KoinTest {
     // Executes each task synchronously using Architecture Components.
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
-/*
-    @get:Rule
-    val koinTestRule = KoinTestRule.create {
-        printLogger(Level.DEBUG)
-        modules(myModule)
-    }*/
 
     @Before fun startKoinForTest() {
         stopKoin()// stop the original app koin, which is launched when the application starts (in "MyApp")
@@ -93,19 +68,8 @@ class RemindersListViewModelTest : KoinTest {
             androidContext(appContext)
             modules(listOf(myModule))
         }
-
-
-/*     // We initialise the tasks to 3, with one active and two completed
-        val reminder1 = ReminderDTO("Title1", "Description1", "location1", 10.0110, 20.5000)
-        val reminder2 = ReminderDTO("Title2", "Description2", "location2", 40.0110, 30.5000)
-        val reminder3 = ReminderDTO("Title3", "Description3","location3", 15.0110, 27.5000)
-
-        mainCoroutineRule.runBlockingTest {
-            dataSource.addReminders(reminder1, reminder2, reminder3)
-        }*/
-
-
     }
+
     @After
     fun stopKoinAfterTest() = stopKoin()
 
@@ -148,13 +112,14 @@ class RemindersListViewModelTest : KoinTest {
 
 //        Then show no data is true
         assertThat(
-            remindersListViewModel.showNoData.value, `is`(true)
+            remindersListViewModel.showNoData.getOrAwaitValue(), `is`(true)
         )
     }
 
     @Test
     fun loadReminders_validList_returnNotEmpty() {
 
+//        Given data source with reminders
         val reminder1 = ReminderDTO("Title1","Description1","Location1",35.5532, 120.3352)
         val reminder2 = ReminderDTO("Title2","Description2","Location2",37.5532, 122.3352)
         val reminder3 = ReminderDTO("Title3","Description3","Location3",39.5532, 125.3352)
@@ -163,11 +128,12 @@ class RemindersListViewModelTest : KoinTest {
             dataSource.addReminders(reminder1, reminder2, reminder3)
         }
 
+//        When Reminders are loaded
         remindersListViewModel.loadReminders()
 
-        // Then progress indicator is hidden
+//         Then show no data is false
         assertThat(
-            remindersListViewModel.showNoData.value, `is`(false)
+            remindersListViewModel.showNoData.getOrAwaitValue(), `is`(false)
         )
     }
 
@@ -186,7 +152,7 @@ class RemindersListViewModelTest : KoinTest {
 
         // Then progress indicator is hidden
         assertThat(
-            remindersListViewModel.remindersList.value, `is`(dataSource.reminders?.map {
+            remindersListViewModel.remindersList.getOrAwaitValue(), `is`(dataSource.reminders?.map {
                 ReminderDataItem(
                 it.title,
                 it.description,
@@ -217,8 +183,38 @@ class RemindersListViewModelTest : KoinTest {
 
         // Then progress indicator is hidden
         assertThat(
-            remindersListViewModel.remindersList.value?.first { it.id == reminder1.id }?.title
+            remindersListViewModel.remindersList.getOrAwaitValue()?.first { it.id == reminder1.id }?.title
             , `is`(reminder1.title)
         )
     }
+
+    @Test
+    fun loadReminders_shouldReturnError() {
+
+        val reminder1 = ReminderDTO("Title1","Description1","Location1",
+            35.5532, 120.3352)
+        val reminder2 = ReminderDTO("Title2","Description2","Location2",
+            37.5532, 122.3352)
+        val reminder3 = ReminderDTO("Title3","Description3","Location3",
+            39.5532, 125.3352)
+
+        mainCoroutineRule.runBlockingTest {
+            dataSource.addReminders(reminder1, reminder2, reminder3)
+        }
+
+        dataSource.setReturnError(true)
+
+        remindersListViewModel.loadReminders()
+
+        // Then show no data and show error are set to true
+        assertThat(
+            remindersListViewModel.showNoData.getOrAwaitValue(), `is`(true)
+        )
+
+
+        assertThat(
+            remindersListViewModel.showErrorMessage.getOrAwaitValue(), not(nullValue())
+        )
+    }
+
 }

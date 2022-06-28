@@ -23,6 +23,7 @@ class RemindersListViewModel(
      * Get all the reminders from the DataSource and add them to the remindersList to be shown on the UI,
      * or show error if any
      */
+
     fun loadReminders() {
 
 
@@ -47,8 +48,10 @@ class RemindersListViewModel(
                     })
                     remindersList.value = dataList
                 }
-                is Result.Error ->
+                is Result.Error -> {
                     showSnackBar.value = result.message
+                    showErrorMessage.value = result.message
+                }
             }
 
             //check if no data has to be shown
