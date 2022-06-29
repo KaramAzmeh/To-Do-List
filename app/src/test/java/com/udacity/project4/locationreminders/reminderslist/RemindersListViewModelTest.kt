@@ -83,7 +83,7 @@ class RemindersListViewModelTest : KoinTest {
         // Pause dispatcher so we can verify initial values
         mainCoroutineRule.pauseDispatcher()
 
-        // Load the task in the viewmodel
+        // Load the reminder in the viewmodel
         remindersListViewModel.loadReminders()
 
         // Then progress indicator is shown
@@ -142,6 +142,7 @@ class RemindersListViewModelTest : KoinTest {
     @Test
     fun loadReminders_validList_reminderListEqualsDataSource() {
 
+//        Given data source with items
         val reminder1 = ReminderDTO("Title1","Description1","Location1",35.5532, 120.3352)
         val reminder2 = ReminderDTO("Title2","Description2","Location2",37.5532, 122.3352)
         val reminder3 = ReminderDTO("Title3","Description3","Location3",39.5532, 125.3352)
@@ -150,9 +151,10 @@ class RemindersListViewModelTest : KoinTest {
             dataSource.addReminders(reminder1, reminder2, reminder3)
         }
 
+//        When reminders are loaded
         remindersListViewModel.loadReminders()
 
-        // Then progress indicator is hidden
+        // Then reminder list matches the data source
         assertThat(
             remindersListViewModel.remindersList.getOrAwaitValue(), `is`(dataSource.reminders?.map {
                 ReminderDataItem(
@@ -170,6 +172,7 @@ class RemindersListViewModelTest : KoinTest {
     @Test
     fun loadReminders_validList_returnCorrectReminder() {
 
+//        Given data source with items
         val reminder1 = ReminderDTO("Title1","Description1","Location1",
             35.5532, 120.3352)
         val reminder2 = ReminderDTO("Title2","Description2","Location2",
@@ -180,19 +183,21 @@ class RemindersListViewModelTest : KoinTest {
         mainCoroutineRule.runBlockingTest {
             dataSource.addReminders(reminder1, reminder2, reminder3)
         }
-
         remindersListViewModel.loadReminders()
 
-        // Then progress indicator is hidden
+//        When reminders are called
+        val reminderCalled = remindersListViewModel.remindersList.getOrAwaitValue()?.first { it.id == reminder1.id }
+
+        // Then the correct reminder is retrieved
         assertThat(
-            remindersListViewModel.remindersList.getOrAwaitValue()?.first { it.id == reminder1.id }?.title
-            , `is`(reminder1.title)
+            reminderCalled?.title, `is`(reminder1.title)
         )
     }
 
     @Test
     fun loadReminders_shouldReturnError() {
 
+//        Given data source with items
         val reminder1 = ReminderDTO("Title1","Description1","Location1",
             35.5532, 120.3352)
         val reminder2 = ReminderDTO("Title2","Description2","Location2",
@@ -204,6 +209,8 @@ class RemindersListViewModelTest : KoinTest {
             dataSource.addReminders(reminder1, reminder2, reminder3)
         }
 
+
+//        When return error is set
         dataSource.setReturnError(true)
 
         remindersListViewModel.loadReminders()
@@ -212,7 +219,6 @@ class RemindersListViewModelTest : KoinTest {
         assertThat(
             remindersListViewModel.showNoData.getOrAwaitValue(), `is`(true)
         )
-
 
         assertThat(
             remindersListViewModel.showErrorMessage.getOrAwaitValue(), not(nullValue())

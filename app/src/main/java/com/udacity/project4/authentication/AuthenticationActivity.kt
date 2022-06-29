@@ -6,7 +6,9 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import androidx.lifecycle.map
+import androidx.lifecycle.observe
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
@@ -27,6 +29,13 @@ class AuthenticationActivity : AppCompatActivity() {
         const val SIGN_IN_RESULT_CODE = 1001
     }
 
+    private val authenticationState = FirebaseUserLiveData().map { user ->
+        if (user != null) {
+            AuthenticationState.AUTHENTICATED
+        } else {
+            AuthenticationState.UNAUTHENTICATED
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,17 +45,7 @@ class AuthenticationActivity : AppCompatActivity() {
             R.layout.activity_authentication
         )
 
-        val authenticationState = FirebaseUserLiveData().map { user ->
-            if (user != null) {
-                AuthenticationState.AUTHENTICATED
-            } else {
-                AuthenticationState.UNAUTHENTICATED
-            }
-
-
-
-        }
-
+        observeAuthenticationState()
 
         binding.authButton.setOnClickListener { launchSignInFlow() }
 
@@ -99,7 +98,25 @@ class AuthenticationActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Observes the authentication state and changes the UI accordingly.
+     * If there is a logged in user: (1) show a logout button and (2) display their name.
+     * If there is no logged in user: show a login button
+     */
+    private fun observeAuthenticationState() {
 
+        authenticationState.observe(this, Observer { authenticationState ->
+            when(authenticationState) {
+                AuthenticationState.AUTHENTICATED -> {
+                    val loginIntent = Intent(this, RemindersActivity::class.java)
+                    loginIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(loginIntent)
+                }
+                else -> { }
+            }
+
+        })
+    }
 
 
 }

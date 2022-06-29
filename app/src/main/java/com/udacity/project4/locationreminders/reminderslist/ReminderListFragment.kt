@@ -10,8 +10,6 @@ import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.Observer
-import androidx.lifecycle.map
 import com.firebase.ui.auth.AuthUI
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
@@ -20,8 +18,6 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.authentication.AuthenticationActivity
-import com.udacity.project4.authentication.AuthenticationState
-import com.udacity.project4.authentication.FirebaseUserLiveData
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
@@ -36,15 +32,6 @@ class ReminderListFragment : BaseFragment() {
     private val TAG = "ReminderListFragment"
 
     private val runningQOrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
-
-    private val authenticationState = FirebaseUserLiveData().map { user ->
-        if (user != null) {
-            AuthenticationState.AUTHENTICATED
-        } else {
-            AuthenticationState.UNAUTHENTICATED
-
-        }
-    }
 
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
@@ -65,8 +52,6 @@ class ReminderListFragment : BaseFragment() {
         setTitle(getString(R.string.app_name))
 
         binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders() }
-
-        observeAuthenticationState()
 
         checkPermissionsAndStartGeofencing()
 
@@ -109,11 +94,13 @@ class ReminderListFragment : BaseFragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.logout -> {
-                AuthUI.getInstance().signOut(requireContext())
+                AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {
+                    val loginIntent = Intent(context, AuthenticationActivity::class.java)
+                    loginIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(loginIntent)
+                }
 
-                val loginIntent = Intent(context, AuthenticationActivity::class.java)
-                loginIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(loginIntent)
+
             }
         }
         return super.onOptionsItemSelected(item)
@@ -125,29 +112,6 @@ class ReminderListFragment : BaseFragment() {
 //        display logout as menu item
         inflater.inflate(R.menu.main_menu, menu)
     }
-
-    /**
-     * Observes the authentication state and changes the UI accordingly.
-     * If there is a logged in user: (1) show a logout button and (2) display their name.
-     * If there is no logged in user: show a login button
-     */
-    private fun observeAuthenticationState() {
-
-        authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
-            when(authenticationState) {
-                AuthenticationState.AUTHENTICATED -> {
-
-                }
-                else -> {
-                    val loginIntent = Intent(context, AuthenticationActivity::class.java)
-                    loginIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(loginIntent)
-                }
-            }
-
-        })
-    }
-
 
     /**
      * Starts the permission check and Geofence process only if the Geofence associated with the
@@ -240,15 +204,9 @@ class ReminderListFragment : BaseFragment() {
     }
 
     companion object {
-        internal const val ACTION_GEOFENCE_EVENT =
-            "com.udacity.todolist.action.ACTION_GEOFENCE_EVENT"
-
         private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
         private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
         private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
-        private const val LOCATION_PERMISSION_INDEX = 0
-        private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
-
     }
 
 

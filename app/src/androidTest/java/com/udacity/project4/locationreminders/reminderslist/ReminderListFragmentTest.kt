@@ -6,9 +6,7 @@ import android.os.Bundle
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -16,15 +14,11 @@ import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.snackbar.SnackbarContentLayout
 import com.udacity.project4.R
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.local.FakeAndroidTestRepository
-import com.udacity.project4.locationreminders.getOrAwaitValue
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.atPosition
-import com.udacity.project4.util.monitorActivity
 import com.udacity.project4.util.monitorFragment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
@@ -43,7 +37,6 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.mockito.Mockito
-import kotlin.properties.Delegates
 
 
 @RunWith(AndroidJUnit4::class)
@@ -54,7 +47,6 @@ class ReminderListFragmentTest : KoinTest {
 
 
     private val repository by inject<FakeAndroidTestRepository>()
-    private val remindersListViewModel by inject<RemindersListViewModel>()
     private lateinit var appContext : Application
 
 
@@ -71,12 +63,6 @@ class ReminderListFragmentTest : KoinTest {
         }
         single{ FakeAndroidTestRepository() }
     }
-
-
-
-    // Set the main coroutines dispatcher for unit testing.
-//    @get:Rule
-//    var mainCoroutineRule = MainCoroutineRule()
 
     @Before
     fun setupKoin() {
@@ -104,7 +90,7 @@ class ReminderListFragmentTest : KoinTest {
 
 
         // WHEN - Click on the "+" button
-        Espresso.onView(withId(R.id.addReminderFAB)).perform(ViewActions.click())
+        onView(withId(R.id.addReminderFAB)).perform(ViewActions.click())
 
         // THEN - Verify that we navigate to the add screen
         Mockito.verify(navController).navigate(
@@ -151,13 +137,17 @@ class ReminderListFragmentTest : KoinTest {
         repository.setReturnError(true)
 
         lateinit var activity :Activity
+        // start up Reminders screen
+
+
         val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
         dataBindingIdlingResource.monitorFragment(scenario)
 
         scenario.onFragment {
-            activity = it.activity as Activity
+            activity = it.requireActivity()
         }
 
+//        Test Fail when run with end-to-end test. Please help
         onView(withText("Testing Result Error")).inRoot(
             withDecorView(not(`is`(activity.window.decorView)))
         ).check(matches(isDisplayed()))

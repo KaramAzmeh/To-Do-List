@@ -15,11 +15,14 @@ import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
-import com.udacity.project4.locationreminders.reminderslist.ReminderListFragment
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
-import com.udacity.project4.util.*
+import com.udacity.project4.util.DataBindingIdlingResource
+import com.udacity.project4.util.atPosition
+import com.udacity.project4.util.longClickIn
+import com.udacity.project4.util.monitorActivity
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,7 +32,6 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
-import org.koin.test.inject
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -75,6 +77,14 @@ class RemindersActivityTest :
         repository = get()
 
         //clear the data to start fresh
+        runBlocking {
+            repository.deleteAllReminders()
+        }
+    }
+
+    @After
+    fun clearData() {
+        //clear the data after complete
         runBlocking {
             repository.deleteAllReminders()
         }

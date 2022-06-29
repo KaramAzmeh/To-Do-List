@@ -33,7 +33,7 @@ class ReminderLocalDataSourceTest {
     @get:Rule
     var mainCoroutineRule = MainCoroutineRule()
 
-    // Executes each task synchronously using Architecture Components.
+    // Executes each reminder synchronously using Architecture Components.
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
@@ -66,14 +66,14 @@ class ReminderLocalDataSourceTest {
             , 23.3333, 53.2262)
         localDataSource.saveReminder(newReminder)
 
-        // WHEN  - Task retrieved by ID
+        // WHEN  - Reminder retrieved by ID
 
         val result = localDataSource.getReminder(newReminder.id)
 
         val succeeded = result is Result.Success
 
 
-        // THEN - Same task is returned
+        // THEN - Same Reminder is returned
         assertThat(succeeded, CoreMatchers.`is`(true))
         result as Result.Success
         Assert.assertThat(result.data.title, CoreMatchers.`is`("title"))
