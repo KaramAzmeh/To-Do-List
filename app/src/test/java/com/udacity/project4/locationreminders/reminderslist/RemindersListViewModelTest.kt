@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.SmallTest
 import com.udacity.project4.locationreminders.*
 import com.udacity.project4.locationreminders.data.local.FakeLocalRepository
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
@@ -31,6 +32,7 @@ import org.koin.test.inject
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
+@SmallTest
 class RemindersListViewModelTest : KoinTest {
 
 

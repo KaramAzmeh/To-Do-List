@@ -74,8 +74,6 @@ class SaveReminderFragment : BaseFragment() {
         }
 
 
-        Log.i(TAG, "activity is: " + requireActivity().toString())
-
         binding.saveReminder.setOnClickListener {
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value

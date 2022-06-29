@@ -44,6 +44,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="login_image">Login Image</string>
     <string name="unknown_geofence_error">Unknown error: the Geofence service is not available now</string>
+    <string name="repository_error">Error Loading Data</string>
 
 
 
