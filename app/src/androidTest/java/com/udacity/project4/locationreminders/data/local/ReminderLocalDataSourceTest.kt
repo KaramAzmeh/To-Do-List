@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
+import androidx.test.filters.SmallTest
 import com.udacity.project4.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
@@ -17,6 +18,7 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.*
 import org.junit.runner.RunWith
+import java.util.*
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -60,6 +62,7 @@ class ReminderLocalDataSourceTest {
     }
 
     @Test
+    @SmallTest
     fun saveReminder_retrievesReminder() = runBlockingTest {
         // GIVEN - a new task saved in the database
         val newReminder = ReminderDTO("title", "description","location"
@@ -83,5 +86,20 @@ class ReminderLocalDataSourceTest {
         Assert.assertThat(result.data.longitude, CoreMatchers.`is`(53.2262))
     }
 
+    @Test
+    @SmallTest
+    fun retrieveNonExistingReminder_throwsError() = runBlockingTest {
+        // GIVEN - an empty database
 
+        // WHEN  - Non-existing id is requested
+
+        val result = localDataSource.getReminder(UUID.randomUUID().toString())
+
+        val error = result is Result.Error
+
+        // THEN - Error Reminder not found is returned
+        assertThat(error, CoreMatchers.`is`(true))
+        result as Result.Error
+        Assert.assertThat(result.message, CoreMatchers.`is`("Reminder not found!"))
+    }
 }

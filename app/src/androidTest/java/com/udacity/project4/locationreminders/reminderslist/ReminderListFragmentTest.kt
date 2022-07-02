@@ -8,7 +8,9 @@ import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions
+import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
@@ -20,6 +22,7 @@ import com.udacity.project4.locationreminders.data.local.FakeAndroidTestReposito
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.atPosition
 import com.udacity.project4.util.monitorFragment
+import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.`is`
@@ -79,6 +82,21 @@ class ReminderListFragmentTest : KoinTest {
     @After
     fun endKoin() = stopKoin()
 
+    @Before
+    fun registerIdlingResource() {
+        IdlingRegistry.getInstance().register(EspressoIdlingResource.countingIdlingResource)
+        IdlingRegistry.getInstance().register(dataBindingIdlingResource)
+    }
+
+    /**
+     * Unregister your Idling Resource so it can be garbage collected and does not leak any memory.
+     */
+    @After
+    fun unregisterIdlingResource() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResource.countingIdlingResource)
+        IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
+    }
+
     @Test
     fun clickAddReminderButton_navigateToSaveReminderFragment() {
         // GIVEN - On the home screen
@@ -87,6 +105,8 @@ class ReminderListFragmentTest : KoinTest {
         scenario.onFragment {
             Navigation.setViewNavController(it.view!!, navController)
         }
+
+        dataBindingIdlingResource.monitorFragment(scenario)
 
 
         // WHEN - Click on the "+" button
@@ -112,6 +132,9 @@ class ReminderListFragmentTest : KoinTest {
         launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
 
 
+        val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
+        dataBindingIdlingResource.monitorFragment(scenario)
+
         // WHEN - Reminder is added
 
         // THEN - Verify items are added to the list
@@ -123,6 +146,10 @@ class ReminderListFragmentTest : KoinTest {
             .check(matches(atPosition(1,
                 hasDescendant(withText("Title2")))))
     }
+    /**
+     * Idling resources tell Espresso that the app is idle or busy. This is needed when operations
+     * are not scheduled in the main Looper (for example when executed on a different thread).
+     */
 
     @Test
     fun noData_showErrorMessage(){
@@ -136,22 +163,14 @@ class ReminderListFragmentTest : KoinTest {
 
         repository.setReturnError(true)
 
-        lateinit var activity :Activity
-        // start up Reminders screen
-
-
         val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
         dataBindingIdlingResource.monitorFragment(scenario)
 
-        scenario.onFragment {
-            activity = it.requireActivity()
-        }
-
-//        Test Fail when run with end-to-end test. Please help
-        onView(withText("Testing Result Error")).inRoot(
-            withDecorView(not(`is`(activity.window.decorView)))
-        ).check(matches(isDisplayed()))
+        //        Test Fail when run with end-to-end test. Please help
+        onView(withId(com.google.android.material.R.id.snackbar_text))
+            .check(matches((withText("Testing Result Error"))))
 
     }
+
 
 }

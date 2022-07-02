@@ -1,27 +1,40 @@
 package com.udacity.project4
 
+import android.app.Activity
 import android.app.Application
+import androidx.fragment.app.testing.FragmentScenario
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions
+import androidx.test.espresso.matcher.RootMatchers
 import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import androidx.test.filters.MediumTest
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
+import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.atPosition
 import com.udacity.project4.util.longClickIn
 import com.udacity.project4.util.monitorActivity
+import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert
+import org.hamcrest.core.Is
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -90,38 +103,120 @@ class RemindersActivityTest :
         }
     }
 
-@Test
+    /**
+     * Idling resources tell Espresso that the app is idle or busy. This is needed when operations
+     * are not scheduled in the main Looper (for example when executed on a different thread).
+     */
+    @Before
+    fun registerIdlingResource() {
+        IdlingRegistry.getInstance().register(EspressoIdlingResource.countingIdlingResource)
+        IdlingRegistry.getInstance().register(dataBindingIdlingResource)
+    }
+
+    /**
+     * Unregister your Idling Resource so it can be garbage collected and does not leak any memory.
+     */
+    @After
+    fun unregisterIdlingResource() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResource.countingIdlingResource)
+        IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
+    }
+
+    @Test
     fun createOneReminder_verifyListContainsItem() {
 
         // start up Reminders screen
-    val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
 
         dataBindingIdlingResource.monitorActivity(activityScenario)
 
         // Add reminder
-        Espresso.onView(withId(R.id.addReminderFAB)).perform(click())
-        Espresso.onView(withId(R.id.reminderTitle))
+        onView(withId(R.id.addReminderFAB)).perform(click())
+        onView(withId(R.id.reminderTitle))
             .perform(ViewActions.typeText("Title"), ViewActions.closeSoftKeyboard())
-        Espresso.onView(withId(R.id.reminderDescription))
+        onView(withId(R.id.reminderDescription))
             .perform(ViewActions.typeText("Description"), ViewActions.closeSoftKeyboard())
-        Espresso.onView(withId(R.id.selectLocation)).perform(click())
+        onView(withId(R.id.selectLocation)).perform(click())
 
-        Espresso.onView(withId(R.id.map)).perform(longClickIn(450,265))
+        onView(withId(R.id.map)).perform(longClickIn(450, 265))
 
-        Espresso.onView(withId(R.id.save_button))
+        onView(withId(R.id.save_button))
             .perform(click())
 
-        Espresso.onView(withId(R.id.saveReminder)).perform(click())
-
+        onView(withId(R.id.saveReminder)).perform(click())
 
 
         // Verify it was added
-        Espresso.onView(withId(R.id.reminderssRecyclerView))
-            .check(ViewAssertions.matches(atPosition(0,
-                ViewMatchers.hasDescendant(ViewMatchers.withText("Title")))))
+        onView(withId(R.id.reminderssRecyclerView))
+            .check(
+                ViewAssertions.matches(
+                    atPosition(
+                        0,
+                        ViewMatchers.hasDescendant(ViewMatchers.withText("Title"))
+                    )
+                )
+            )
 
         // Make sure the activity is closed before resetting the db:
         activityScenario.close()
 
     }
+
+
+    @Test
+    @MediumTest
+    fun saveReminder_noLocation_returnSnackbar() {
+
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        // Add reminder
+        onView(withId(R.id.addReminderFAB)).perform(click())
+        onView(withId(R.id.reminderTitle))
+            .perform(ViewActions.typeText("Title"), ViewActions.closeSoftKeyboard())
+        onView(withId(R.id.reminderDescription))
+            .perform(ViewActions.typeText("Description"), ViewActions.closeSoftKeyboard())
+
+        onView(withId(R.id.saveReminder)).perform(click())
+
+
+        //        Test Fail when run with end-to-end test. Please help
+        onView(withId(com.google.android.material.R.id.snackbar_text))
+            .check(ViewAssertions.matches((withText(R.string.err_select_location))))
+
+        // Make sure the activity is closed before resetting the db:
+        activityScenario.close()
+
+    }
+
+    @Test
+    @MediumTest
+    fun saveReminder_noTitle_returnSnackbar() {
+
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        // Add reminder
+        onView(withId(R.id.addReminderFAB)).perform(click())
+
+        onView(withId(R.id.selectLocation)).perform(click())
+
+        onView(withId(R.id.map)).perform(longClickIn(450, 265))
+
+        onView(withId(R.id.save_button))
+            .perform(click())
+
+        onView(withId(R.id.saveReminder)).perform(click())
+
+        //        Test Fail when run with end-to-end test. Please help
+        onView(withId(com.google.android.material.R.id.snackbar_text))
+            .check(ViewAssertions.matches((withText(R.string.err_enter_title))))
+
+        // Make sure the activity is closed before resetting the db:
+        activityScenario.close()
+
+    }
+
 }
