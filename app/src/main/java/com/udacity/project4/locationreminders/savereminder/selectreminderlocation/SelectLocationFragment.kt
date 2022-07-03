@@ -4,6 +4,7 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 import android.Manifest
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
+import android.app.Activity
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
@@ -33,6 +34,7 @@ import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
+import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
@@ -175,8 +177,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setMapLongClick(map)
         setPoiClick(map)
 
-        enableMyLocation()
-
+        if(isPermissionGranted()) {
+            map.setMyLocationEnabled(true)
+        }
         // Turn on the My Location layer and the related control on the map.
         // this method moves camera to location.
 //        updateLocationUI()
@@ -193,6 +196,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
             // We don't rely on the result code, but just check the location setting again
             checkDeviceLocationSettings(false)
+            if(resultCode == Activity.RESULT_OK){
+                updateLocationUI()
+            }
         }
     }
 
@@ -200,16 +206,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         return (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 &&
                 ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-    }
-
-    private fun enableMyLocation() {
-        if(isPermissionGranted()) {
-            map.setMyLocationEnabled(true)
-        } else {
-            ActivityCompat.requestPermissions(
-                requireActivity(),arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_LOCATION_PERMISSION)
-
-        }
     }
 
     override fun onRequestPermissionsResult(
@@ -240,6 +236,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     })
                 }.show()
         } else {
+            map.setMyLocationEnabled(true)
+            updateLocationUI()
             checkDeviceLocationSettings()
         }
     }
@@ -247,7 +245,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     @SuppressLint("MissingPermission")
     private fun updateLocationUI() {
 
-
+        Log.i(TAG, "UpdateLocationUI called")
         if (map == null) {
             return
         }
@@ -261,7 +259,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 map?.isMyLocationEnabled = false
                 map?.uiSettings?.isMyLocationButtonEnabled = false
                 lastKnownLocation = null
-                enableMyLocation()
             }
         } catch (e: SecurityException) {
             Log.e("Exception: %s", e.message, e)
@@ -337,6 +334,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
      */
     private fun checkPermissionsAndLocationSettings() {
         if (foregroundLocationPermissionApproved()) {
+
             checkDeviceLocationSettings()
         } else {
             requestForegroundLocationPermission()
@@ -359,25 +357,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         locationSettingsResponseTask.addOnFailureListener { exception ->
             if (exception is ResolvableApiException && resolve) {
                 try{
-                    exception.startResolutionForResult(requireActivity(),
-                        REQUEST_TURN_DEVICE_LOCATION_ON
+                    startIntentSenderForResult(exception.resolution.intentSender,
+                        REQUEST_TURN_DEVICE_LOCATION_ON,null,0,0,0, null
                     )
                 } catch (sendEx: IntentSender.SendIntentException) {
                     Log.d(TAG, "Error getting location settings resolution: " + sendEx.message)
                 }
-            } else {
-                Snackbar.make(
-                    binding.mapContainer,
-                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok) {
-                        checkDeviceLocationSettings()
-                    }.show()
-            }
-        }
-        locationSettingsResponseTask.addOnCompleteListener{
-            if (it.isSuccessful) {
-                Log.i(TAG, "Location permission is approved")
-                updateLocationUI()
             }
         }
     }
