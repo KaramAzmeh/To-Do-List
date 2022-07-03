@@ -166,7 +166,6 @@ class ReminderListFragmentTest : KoinTest {
         val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
         dataBindingIdlingResource.monitorFragment(scenario)
 
-        //        Test Fail when run with end-to-end test. Please help
         onView(withId(com.google.android.material.R.id.snackbar_text))
             .check(matches((withText("Testing Result Error"))))
 

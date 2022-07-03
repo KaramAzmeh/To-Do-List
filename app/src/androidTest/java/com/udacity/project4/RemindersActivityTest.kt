@@ -11,10 +11,11 @@ import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions
+import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers
-import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.espresso.matcher.ViewMatchers.withText
+import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.filters.MediumTest
@@ -33,6 +34,8 @@ import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert
 import org.hamcrest.core.Is
 import org.junit.After
@@ -125,9 +128,13 @@ class RemindersActivityTest :
     @Test
     fun createOneReminder_verifyListContainsItem() {
 
+        lateinit var activity: Activity
         // start up Reminders screen
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
 
+        activityScenario.onActivity {
+            activity = it
+        }
         dataBindingIdlingResource.monitorActivity(activityScenario)
 
         // Add reminder
@@ -146,13 +153,17 @@ class RemindersActivityTest :
         onView(withId(R.id.saveReminder)).perform(click())
 
 
+        onView(withText(R.string.reminder_saved)).inRoot(
+            withDecorView(not(`is`(activity.window.decorView)))
+        ).check(matches(isDisplayed()))
+
         // Verify it was added
         onView(withId(R.id.reminderssRecyclerView))
             .check(
                 ViewAssertions.matches(
                     atPosition(
                         0,
-                        ViewMatchers.hasDescendant(ViewMatchers.withText("Title"))
+                        ViewMatchers.hasDescendant(withText("Title"))
                     )
                 )
             )
@@ -181,7 +192,6 @@ class RemindersActivityTest :
         onView(withId(R.id.saveReminder)).perform(click())
 
 
-        //        Test Fail when run with end-to-end test. Please help
         onView(withId(com.google.android.material.R.id.snackbar_text))
             .check(ViewAssertions.matches((withText(R.string.err_select_location))))
 
@@ -210,11 +220,9 @@ class RemindersActivityTest :
 
         onView(withId(R.id.saveReminder)).perform(click())
 
-        //        Test Fail when run with end-to-end test. Please help
         onView(withId(com.google.android.material.R.id.snackbar_text))
             .check(ViewAssertions.matches((withText(R.string.err_enter_title))))
 
-        // Make sure the activity is closed before resetting the db:
         activityScenario.close()
 
     }
